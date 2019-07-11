@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This template is for creating an Internet Draft using xml2rfc,
+     which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!-- One method to get references from the online citation libraries.
+     There has to be one entity for each item to be referenced.
+     An alternate method (rfc include) is described in the references. -->
+
+<!ENTITY RFC2629 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2629.xml">
+]>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<!-- used by XSLT processors -->
+<!-- For a complete list and description of processing instructions (PIs),
+     please see http://xml.resource.org/authoring/README.html. -->
+<!-- Below are generally applicable Processing Instructions (PIs) that most I-Ds might want to use.
+     (Here they are set differently than their defaults in xml2rfc v1.32) -->
+<?rfc strict="yes" ?>
+<!-- give errors regarding ID-nits and DTD validation -->
+<!-- control the table of contents (ToC) -->
+<?rfc toc="yes"?>
+<!-- generate a ToC -->
+<?rfc tocdepth="4"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<!-- control references -->
+<?rfc symrefs="yes"?>
+<!-- use symbolic references tags, i.e, [RFC2119] instead of [1] -->
+<?rfc sortrefs="yes" ?>
+<!-- sort the reference entries alphabetically -->
+<!-- control vertical white space
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<?rfc compact="yes" ?>
+<!-- do not start each main section on a new page -->
+<?rfc subcompact="no" ?>
+<?rfc private="(c) GROUP 22, 2019" ?>
+
+<rfc category="info" docName="draft-ietf-xml2rfc-template-05" ipr="trust200902">
+
+  <front>
+    <title abbrev="c2w protocol specification">
+      Group 22: c2w protocol specification
+    </title>
+
+    <author fullname="Gonzalo Inaki Quintana" initials="G.I.Q." surname="Quintana">
+      <organization>IMT-Atlantique</organization>
+      <address>
+        <postal>
+          <street>655 Avenue du Technopole</street>
+          <city>Plouzane</city>
+          <region>Bretagne</region>
+          <code>29280</code>
+          <country>France</country>
+        </postal>
+        <email>gonzalo-inaki.quintana@imt-atlantique.net</email>
+      </address>
+    </author>
+
+    <author fullname="Patricio Alejandro Tula" initials="P.A.T." surname="Tula">
+      <organization>IMT-Atlantique</organization>
+      <address>
+        <postal>
+          <street>655 Avenue du Technopole</street>
+          <city>Plouzane</city>
+          <region>Bretagne</region>
+          <code>29280</code>
+          <country>France</country>
+        </postal>
+        <email>tula.patricio@imt-atlantique.net</email>
+      </address>
+    </author>
+
+    <date month= "8" year="2019" />
+
+    <keyword>c2w</keyword>
+
+    <abstract>
+      <t>
+        Sample protocol specification for the text-based version of the
+        Chat While Watching (c2w) application. The goal of this application
+        is to create a simple client-server system that allows users to join
+        two different kinds of sessions (Main Room and Movie Room) and where 
+        they can chat.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>
+        The c2w application's communication protocol will support the interactions 
+        between the server and the client interfaces in the system. The 
+        clients and the server will communicate by sending requests and 
+        responses to reply to the resquests. These interactions will lie 
+        on text-based packets, also named messages, that can either 
+        flow through UDP or TCP in the transport layer.
+      </t>
+      <t>
+        The application will provide three distinct graphic user interfaces (GUI) 
+        for the user to interact with: Login, Main Room and Movie Room. Each interface
+        constitutes the Client interface and all the services provided will be catered by
+        the Server through this protocol.
+      </t>
+    </section><!-- end Introduction -->
+
+    <section title="Protocol overview">
+      <t>
+        In order to introduce the communication between the client interface (frontend) and 
+        server interface (backend) of our application, we've designed a text-based messaging 
+        communication protocol that ensures a good performance and reliability of the 
+        messaging service. The cornerstone of this protocol is the general message-format 
+        that it is commited in every transmission of the system, either by the server 
+        or by the client. Nevertheless, the nature of the message is specified by 
+        an argument named CMD (Command). Depending on the command's type the message's 
+        packet will provide a particular information. Lastly, the system's realability 
+        lies on the persistence of the message's transmission. For instance, every packet 
+        sent must be answered back with an acknowledgement packet that endorses the sender 
+        that the message has been well received. If this acknowledgement packet it is not
+        received back by the sender withi an certain time, it will insist by sending the
+        original packet again. After 3 frustrated attempts the sender will raise an error 
+        message in his interface and abort the procedure.
+      </t>
+    </section><!-- end protocol overview -->
+
+    <section title="Messages format">
+
+      <t>
+        All the messages have the same format:
+      </t>
+
+      <t><list hangIndent="8" style="hanging"><t>
+        TIME: &lt;SPACE&gt; CMD &lt;PIPE&gt; USER_NAME &lt;PIPE&gt; DATA &lt; CRLF &gt;
+      </t></list></t>
+
+      <t>
+        Where SPACE is a single white space (ASCII decimal code 32) and PIPE is the 
+        separator character of the CSV format (ASCII decimal code 124), CR represents 
+        the ASCII character "Carriage Return" (ASCII decimal code 13) and LF represents 
+        the ASCII character "Line Feed" (ASCII decimal code 10).
+      </t>
+
+      <t><list hangIndent="4" style="hanging">        
+        
+        <t hangText="TIME"><list style="empty"><t>
+          For requests (i.e., messages send by a client) this is the time at which 
+          the request was sent, expressed as the number of seconds since January 1st,
+          1970. For responses, (i.e., a message from the server to the client), the 
+          TIME field must be the same as the TIME field of the corresponding request.
+        </t></list></t>
+
+        <t hangText="CMD"><list style="empty"><t>
+          This field indicates the message type and  it's detailed further in 
+          this specification.
+        </t></list></t>
+
+        <t hangText="USER_NAME"><list style="empty"><t>
+          For requests and responses, this is the user name of the client that originated the message.
+        </t></list></t>
+
+        <t hangText="DATA"><list style="empty"><t>
+          This field changes depending on the message type and its content is detailed 
+          further in this specification.
+        </t></list></t>
+
+      </list></t>
+    </section><!-- end message format -->
+
+    <section title="Messages's commands">
+      <t>
+        This section lists, describes and explains all the possible commands that 
+        messages can have. Additionally, it is explained how the message is 
+        configurated for each case.
+      </t>
+
+      <t><list hangIndent="4" style="hanging">        
+      
+        <t hangText="CONNECTION_REQUEST"><list style="empty">
+          <t>
+            Through this command the client sends to the server a request to log into the application. 
+            In this case, the DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="CONNECTION_GRANTED"><list style="empty">
+          <t>
+            Through this command the server sends to the client a message granting its access to the application. 
+            In this case, the DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="CONNECTION_ERROR_XXX"><list style="empty">
+          <t>
+            If access to the application is not granted by the server this command is sent by the server to 
+            refuse the user's connexion/. XXX references to the error code. In this case, the DATA field 
+            is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="CONNECTION_RESPONSE_ACK"><list style="empty">
+          <t>
+            Once the client received the server (CONNECTION_GRANTED or CONNECTION_ERROR_XXX), it
+            replies back sending a message holding the command CONNECTION_RESPONSE_ACK to acknowledge
+            its reception. In this case, the DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="USER_LIST_REQUEST"><list style="empty">
+          <t>
+            Through this command the client asks the server the list of all users in the system and 
+            their status ("A" when they are available and "M" when they are in a movie room). In this case,
+            the DATA field is an empty string.
+          </t>
+        </list></t>
+        
+        <t hangText="USER_LIST_RESPONSE"><list style="empty">
+          <t>
+            This command is the response to the previous one. Its DATA field contains 
+            the list of all the users in the following format:
+          </t>
+          <t>
+            USER_1 &lt;COMA&gt; ST_1 &lt;COMA&gt;...&lt;COMA&gt; USER_N &lt;COMA&gt; ST_N
+          </t>
+          <t>
+            Where COMA is the separator character (ASCII decimal code 44). USER_N reprents the
+            name of user number N and ST_N its status on the application. The status takes the value 
+            'M' when the user is in Movie Room or 'A' when he is in the Main Room. 
+            This command is also used anytime the server needs to update the clients user list.
+          </t>
+        </list></t>
+        
+        <t hangText="USER_LIST_RESPONSE_ACK"><list style="empty">
+          <t> 
+            This command is used by the client to acknowledge the user list sent by the server. 
+            In this case, the DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="MOVIE_LIST_REQUEST"><list style="empty">
+          <t>
+            Through this command the client asks the server the list of movies
+            in the system. In this case, the DATA field of the message is an 
+            empty string.
+          </t>
+        </list></t>
+        
+        <t hangText="MOVIE_LIST_RESPONSE"><list style="empty">
+          <t>
+            This command is the response to the previous one. Its DATA field contains 
+            the list of the movies and their associated IP addresses and port numbers 
+            in the following payload format:
+          </t>  
+          <t>
+            MOVIE_1 &lt;COMA&gt; IP_1 &lt;COMA&gt; PORT_1 &lt;COMA&gt;...&lt;COMA&gt; MOVIE_N &lt;COMA&gt; 
+            IP_N &lt;COMA&gt; PORT_N
+          </t>
+          <t>
+            Where COMA is the separator character (ASCII decimal code 44), MOVIE_N 
+            is the name of the movie number N and IP_N and PORT_N are its respective ip 
+            address and port number. This command is also used any time the server 
+            needs to update its movie list. 
+          </t>
+        </list></t>
+
+        <t hangText="MOVIE_LIST_RESPONSE_ACK"><list style="empty">
+          <t>
+            This command is used by the client to acknowledge the movie list
+            sent by the server. The DATA field of the message is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="LEAVE_SESSION_REQUEST"><list style="empty">
+          <t>
+            Through this command the client asks the server to leave the system.
+            The DATA field of the message is an empty string.
+          </t>
+        </list></t>
+        
+        <t hangText="LEAVE_SESSION_XXXX"><list style="empty">
+          <t>
+            This command is the response to the previous one. If the server allows
+            this operation, the XXXX is replaced by GRANTED. Otherwise, XXXX is replaced 
+            by ERROR_YYY, where YYY is the error code. The DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="LEAVE_SESSION_RESPONSE_ACK"><list style="empty">
+          <t>
+            This command is used to acknowledge the LEAVE_SESSION_GRANTED 
+            and LEAVE_SESSION_ERROR_XXX commands sent by the server.
+            The DATA field of the message is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="SEND_MESSAGE_REQUEST"><list style="empty">
+          <t>
+            Through this command the client sends a new message to its current chat area.
+            The USER_NAME field has the user name of the client. The DATA field is filled
+            with this message.
+          </t>
+        </list></t>
+
+        <t hangText="NEW_MESSAGE"><list style="empty">
+          <t>
+            Through this command the server updates the chat area of all connected users when 
+            some user posts a message. The USER_NAME field has the user name of the message's 
+            author. The DATA field is filled with this message.
+          </t>
+        </list></t>
+      
+        <t hangText="NEW_MESSAGE_RESPONSE_ACK"><list style="empty">
+          <t>
+            This command is used by each client to acknowledge the arrival of 
+            a new message. The DATA field is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="ENTER_MOVIE_REQUEST"><list style="empty">
+          <t>
+            Through this command the client asks the server to join a movie session.
+            The DATA field is filled with the movie name.
+          </t>
+        </list></t>
+
+        <t hangText="ENTER_MOVIE_XXXX"><list style="empty">
+          <t>
+            This command is the response to the previous one. If the server allows
+            this operation, the XXXX is replaced by GRANTED. Otherwise, XXXX is 
+            replaced by ERROR_YYY, where YYY is the error code. The DATA field of 
+            the message is an empty string.
+          </t>
+        </list></t>
+
+        <t hangText="ENTER_MOVIE_RESPONSE_ACK"><list style="empty">
+          <t>
+            This command is used to acknowledge the ENTER_MOVIE_GRANTED 
+            and ENTER_MOVIE_ERROR_XXX commands sent by the server.The DATA field of 
+            the message is an empty string.
+          </t>
+        </list></t>
+
+      </list></t>
+    </section><!-- end Command section -->
+
+    <section title="Error codes">
+      <t>
+        The c2w communication protocol attemps to support the errors status code from HTTP status-code standard. 
+      </t>
+      <t>
+        The HTTP status-Code element in a server response is a 3-digit integer where the first digit of the Status-Code
+        defines the class of response and the last two digits do not have any categorization role. There are 5 values
+        for the first digit, however, in c2w protocol there are any used 2: 
+      </t>
+      <t><list hangIndent="4" style="hanging">
+        <t hangText="4xx: Client Error"><list style="empty">
+          <t> It means the request contains incorrect syntax or cannot be fulfilled. </t>
+        </list></t>
+        <t hangText="5xx: Server Error"><list style="empty">
+          <t> It means the server failed to fulfill an apparently valid request. </t>
+        </list></t>
+      </list></t>
+      <t>
+        Given below is a list of all the status codes.
+      </t>
+      
+      <t><list hangIndent="4" style="hanging">
+        
+        <t hangText="400 Bad Request"><list style="empty">
+          <t> The server did not understand the request. </t>
+        </list></t>
+
+        <t hangText="401 Unauthorized"><list style="empty">
+          <t> The requested page needs a username and a password. </t>
+        </list></t>
+
+        <t hangText="403 Payment Required"><list style="empty">
+          <t> Access is forbidden to the requested page. </t>
+        </list></t>
+        
+        <t hangText="404 Not Found"><list style="empty">
+          <t> The server can not find the requested page. </t>
+        </list></t>
+        
+        <t hangText="405 Method Not Allowed"><list style="empty">
+          <t> The method specified in the request is not allowed. </t>
+        </list></t>
+        
+        <t hangText="408 Request Timeout"><list style="empty">
+          <t> The request took longer than the server was prepared to wait. </t>
+        </list></t>
+        
+        <t hangText="410 Gone"><list style="empty">
+          <t> The requested page is no longer available. </t>
+        </list></t>
+        
+        <t hangText="413 Request Entity Too Large"><list style="empty">
+          <t> The server will not accept the request, because the request entity is too large. </t>
+        </list></t>
+
+        <t hangText="500 Internal Server Error"><list style="empty">
+          <t> The request was not completed. The server met an unexpected condition. </t>
+        </list></t>
+
+        <t hangText="501 Not Implemented	"><list style="empty">
+          <t> The request was not completed. The server did not support the functionality required. </t>
+        </list></t>
+
+        <t hangText="503 Service Unavailable"><list style="empty">
+          <t> The request was not completed. The server is temporarily overloading or down. </t>
+        </list></t>
+
+        <t hangText="504 Gateway Timeout	"><list style="empty">
+          <t> The gateway has timed out. </t>
+        </list></t>
+
+      </list></t>
+
+    </section><!-- end Error codes section -->
+
+    <section title="Example scenario">
+      <section title="Scenario 1: Log in">
+        <t>
+          At 3:35 PM on March 3rd 2010, a client would like to log in with the name "django". 
+          Its IP address and Port number are: 127.0.0.2 and 8080. The message sent by the client is:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626900: CONNECTION_REQUEST|django|CRLF </t>        
+        </list></t>
+        <t>
+          If the server allows this log in, it sends to the client the following message:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626900: CONNECTION_GRANTED|django|CRLF </t>        
+        </list></t>
+        <t>
+          Otherwise, the server replies the client's message with the following packet:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626900: CONNECTION_ERROR_XXX|django|CRLF </t>
+        </list></t>
+        <t>
+          Where XXX references to the corresponding error code.
+          Finally, the client acknowledges the server's message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267626900: CONNECTION_RESPONSE_ACK|django|CRLF </t>
+        </list></t>
+      </section><!--End of scenario 1-->
+
+      <section title="Scenario 2: Entering a session into the Main Room interface">
+        <t>
+          After the client's successful log in, the application needs the user 
+          and movie lists in order to correctly show them in the Main Room window.
+          For that purpose, the client sends to the server the following requests:
+        </t>
+        <t><list style="empty">
+          <t> 1267626903: USER_LIST_REQUEST|django|CRLF </t>
+          <t> 1267626903: MOVIE_LIST_REQUEST|django|CRLF </t>        
+        </list></t>
+        <t>
+          Supposing that the users connected to the system are colLanda 
+          (watching a movie), MrCandy (watching a movie), drKingSchultz (available) 
+          and vincentVega (available) and that the available movies are Hateful Eight, 
+          Pulp Fiction and Kill Bill vol 1, the server then answers to the client through
+          the following message:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626903: USER_LIST_RESPONSE|django|colLanda,M,MrCandy,M,drKingSchultz,A,
+          vincentVega,A,django,ACRLF </t>
+        </list></t>
+        <t>
+          This message is also sent to all the clients in the Main Room for they 
+          to update theirs user lists. Then, every client acknowledges the server message
+          by answering:
+        </t>
+        <t><list style="empty">
+          <t> 1267626903: USER_LIST_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>        
+          Where &lt;user_name&gt; is the name of the user replying to the server.
+          The server then sends the following message only to django:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626903: MOVIE_LIST_RESPONSE|django|Hateful Eight,1.1.1.0,8080,Pulp Fiction,1.1.2.0,8080,
+          KIll Bill vol 1,1.1.1.4,8080CRLF </t>
+        </list></t>
+        <t>
+          Finally, django acknowledges the server's message by answering:
+        </t>
+        <t><list style="empty">        
+          <t> 1267626903: MOVIE_LIST_RESPONSE_ACK|django|CRLF </t>
+        </list></t>
+
+      </section><!--End of scenario 2-->
+
+      <section title="Scenario 3: Sending a message into the Main Room chat area">
+        <t>
+          The client with the user name "django" now sends the following message 
+          to the Main Room's chat area: "English motherf*cker! Do you speak it?".
+          Therefore, the client submits the following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267627000: SEND_MESSAGE_REQUEST|django|English motherf*cker! Do you speak it?CRLF </t>
+        </list></t>
+        <t>
+          After receiving the message, the server broadcast to all the users in the Main Room the 
+          following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267627000: NEW_MESSAGE|django|English motherf*cker! Do you speak it?CRLF </t>
+        </list></t>
+        <t>
+          All the users in the Main Room receive this message (including the one who sent the message)
+          and update their Main Room's chat area with that new message. Then, they acknowledge the it 
+          by sending the following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267627000: NEW_MESSAGE_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>
+          Where &lt;user_name&gt; is the name of the user replying to the server.
+        </t>
+      </section><!--End of scenario 3-->
+
+      <section title="Scenario 4: Openning a Movie Room Session">
+        <t>
+          The client now wishes to watch the movie "Kill Bill vol 1". The clients colLanda and MrCandy are 
+          currently in that Movie Room. The client sends to the server the following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: ENTER_MOVIE_REQUEST|django|Kill Bill vol 1CRLF </t>
+        </list></t>
+        <t>
+          If the server gives him access to that movie, it replies with:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: ENTER_MOVIE_GRANTED|django|Kill Bill vol 1CRLF </t>
+        </list></t>
+        <t>
+          If not, it replies with:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: ENTER_MOVIE_ERROR_XXX|django|Kill Bill vol 1CRLF </t>
+        </list></t>
+        <t>
+          Where XXX references the error code.
+          At the end, the django client acknowledges the server's message by:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: ENTER_MOVIE_RESPONSE_ACK|django|CRLF </t>
+        </list></t>
+        <t>
+          If the client was allowed to get into this session, all the other clients 
+          receive the following message, that changes to "M" the state of the client 
+          that just entered the Movie Room:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: USER_LIST_RESPONSE|django|colLanda,M,MrCandy,M,drKingSchultz,
+          A,vincentVega,A,django,MCRLF </t>
+        </list></t>
+        <t>
+          Finally, all the clients acknowledge the server's message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: USER_LIST_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>
+          Where &lt;user_name&gt; is the name of the user replying to the server.
+        </t>
+      </section><!--End of scenario 4-->
+
+      <section title="Scenario 5: Sending a message in the Movie Room chat area">
+        <t>
+          Supposing the client got access to that movie, it now wants to sends the following 
+          message to the Movie Room's chat area: "The spider just caught himself a couple of flies...".
+          The message that django's client sends then, it is:
+        </t>
+        <t><list style="empty">
+          <t> 1267629000: SEND_MESSAGE_REQUEST|django|The spider just caught 
+          himself a couple of flies...CRLF </t>
+        </list></t>
+        <t>
+          After receiving this message, the server broadcast it to all the users in the Movie Room 
+          through the following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267629000: NEW_MESSAGE|django|The spider just caught himself a couple of flies...CRLF </t>
+        </list></t>
+        <t>
+          All the users in the Movie Room receive this message and then they update their Movie Room's chat area
+          with that new message. Finally, all the clients (including the one who sent the message) acknowledge 
+          the server message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267629000: NEW_MESSAGE_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>
+          Where &lt;user_name&gt; is the name of the user replying to the server.
+        </t>
+      </section><!--End of scenario 5-->
+
+      <section title="Scenario 6: Leaving the Movie Room Session">
+        <t>
+          The client now wants to leave the Movie Room session. It sends the following message to
+          the server:
+        </t>
+        <t><list style="empty">
+          <t> 1267630000: LEAVE_SESSION_REQUEST|django|CRLF </t>
+        </list></t>
+        <t>
+          If the server allows this operation, it replies him back with:
+        </t>
+        <t><list style="empty">
+          <t> 1267630000: LEAVE_SESSION_GRANTED|django|CRLF </t>
+        </list></t>
+        <t>
+          And it sends to all the other clients the following message (changing the state of django), 
+          for they to update theirs user list:
+        </t>
+        <t><list style="empty">
+          <t> 1267630000: USER_LIST_RESPONSE|django|colLanda,M,MrCandy,M,drKingSchultz,A,
+          vincentVega,A,django,ACRLF </t>
+        </list></t>
+        <t>
+          All the clients acknowledge the server's message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267628000: USER_LIST_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>
+          If the client is not allowed to leave the session, the server replies with:
+        </t>
+        <t><list style="empty">
+          <t> 1267630000: LEAVE_SESSION_ERROR_XXX|django|CRLF </t>
+        </list></t>
+        <t>
+          Where XXX references the error code.
+          The client then acknowledges this message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267630000: LEAVE_SESSION_RESPONSE_ACK|django|CRLF </t>
+        </list></t>
+
+      </section> <!--End of scenario 6-->
+  
+      <section title="Scenario 7: Leave Main Room Session">
+        <t>
+          The client finally wants to leave the Main Room Session. It sends the following message:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: LEAVE_SESSION_REQUEST|django|CRLF </t>
+        </list></t>
+        <t>
+          If the server allows this operation, it replies it with:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: LEAVE_SESSION_GRANTED|django|CRLF </t>
+        </list></t>
+        <t>
+          And it sends to all the other clients the following message, for them to 
+          update theirs user list:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: USER_LIST_RESPONSE|django|colLanda,M,MrCandy,M,drKingSchultz,
+          A,vincentVega,ACRLF </t>
+        </list></t>
+        <t>
+          All the clients acknowledge the server's message by sending:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: USER_LIST_RESPONSE_ACK|&lt;user_name&gt;|CRLF </t>
+        </list></t>
+        <t>
+          Where &lt;user_name&gt; is the name of the user replying to the server.
+        </t>
+        <t>
+          If the client is not allowed to leave the session, the server replies with:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: LEAVE_SESSION_ERROR_XXX|django|CRLF </t>
+        </list></t>
+        <t>
+          Where XXX references the error code. The client then acknowledges the reception
+          of the server's message with:
+        </t>
+        <t><list style="empty">
+          <t> 1267640000: LEAVE_SESSION_RESPONSE_ACK|django|CRLF </t>
+        </list></t>
+      </section> <!--End of scenario 7-->
+
+      <section title="Scenario 8: Sending a message in the Movie Room chat area fails">
+        <t>
+          Supposing the client got access to that movie, it now wants to send the following 
+          message to the Movie Room's chat area: "that's a bingo!". The message that the client 
+          sends then, it is:
+        </t>
+        <t><list style="empty">
+          <t> 1267650000: SEND_MESSAGE_REQUEST|django|that's a bingo!CRLF </t>
+        </list></t>
+        <t>
+          The server doesn't answer back in 5 seconds timeout. The client insists by
+          sending again the message.
+        </t>
+        <t><list style="empty">
+          <t> 1267650000: SEND_MESSAGE_REQUEST|django|that's a bingo!CRLF </t>
+        </list></t>
+        <t>
+          The server doesn't answer back again and after 5 seconds the client tries sending the message 
+          again. However, the server doesn't replies. The client tries by third time after waiting 5 seconds.
+          The server doesn't answer again. The client then raises an error to the user interface telling it that the 
+          server is not reachable and stops trying to send the message.
+        </t>
+
+      </section><!--End of scenario 8 -->    
+
+    </section><!--End of scenarios-->
+
+    <section title="Conclusion">
+        <t>
+          The c2w protocol ensures the robustness and reliability of the communication
+          of the application. Thanks to this detailed specification document, it will
+          be easy and straightforward to develop and implement it.
+        </t>
+    </section>
+
+  </middle>
+
+</rfc>

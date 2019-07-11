@@ -1,0 +1,19 @@
+-ERROR 1: Aparece cuando entro a ver una pelicula (con un solo cliente) en TCP. 
+Tira error pero entra. Ya no reproduce mas la pelicula al entrar. El error lo tira en el CLIENT
+
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('Resource not found.', 'gst-resource-error-quark', 3), debug='gstfilesrc.c(530): gst_file_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nNo such file "/home/student/SparkleShare/c2w-shared-r209/Movies/sintel_trailer-480p.ogv"')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('GStreamer error: state change failed and some element failed to post a proper error message with the reason for the failure.', 'gst-core-error-quark', 4), debug='gstbasesrc.c(3354): gst_base_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nFailed to start')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('Resource not found.', 'gst-resource-error-quark', 3), debug='gstfilesrc.c(530): gst_file_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nNo such file "/home/student/SparkleShare/c2w-shared-r209/Movies/sintel_trailer-480p.ogv"')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('GStreamer error: state change failed and some element failed to post a proper error message with the reason for the failure.', 'gst-core-error-quark', 4), debug='gstbasesrc.c(3354): gst_base_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nFailed to start')
+
+-ERROR 2: Al salir de la pelicula. Tira error pero sale. El error lo tira en el SERVER
+
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('Resource not found.', 'gst-resource-error-quark', 3), debug='gstfilesrc.c(530): gst_file_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nNo such file "/home/student/SparkleShare/c2w-shared-r209/Movies/sintel_trailer-480p.ogv"')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('GStreamer error: state change failed and some element failed to post a proper error message with the reason for the failure.', 'gst-core-error-quark', 4), debug='gstbasesrc.c(3354): gst_base_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nFailed to start')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('Resource not found.', 'gst-resource-error-quark', 3), debug='gstfilesrc.c(530): gst_file_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nNo such file "/home/student/SparkleShare/c2w-shared-r209/Movies/sintel_trailer-480p.ogv"')
+ERROR:c2w.main.gst_pipeline:on_error(): (gerror=GLib.Error('GStreamer error: state change failed and some element failed to post a proper error message with the reason for the failure.', 'gst-core-error-quark', 4), debug='gstbasesrc.c(3354): gst_base_src_start (): /GstPipeline:pipeline1/GstFileSrc:filesrc1:\nFailed to start')
+
+- Problemas con los mensajes
+
+- Problemas con el status
+
